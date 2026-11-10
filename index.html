@@ -1,0 +1,33 @@
+// GANTI FUNGSI call() LAMA DENGAN INI - UNTUK GITHUB
+const API_URL = "https://script.google.com/macros/s/AKfycbwEsTRFg5IJ0ZqvWqr7pabUkpzHy7c8Afp7PML-NuiANJTvpElfH7D_REXzDKOQvqNv/exec";
+
+async function call(fn, ...args){
+  // GET actions
+  const getMap = {
+    loginAdmin: () => `${API_URL}?action=login&email=${encodeURIComponent(args[0])}&password=${encodeURIComponent(args[1])}`,
+    getDashboard: () => `${API_URL}?action=dashboard`,
+    getPelanggan: () => `${API_URL}?action=pelanggan`,
+    getSPKList: () => `${API_URL}?action=spkList&status=${args[0]?.status||''}&tanggal_awal=${args[0]?.tanggal_awal||''}&tanggal_akhir=${args[0]?.tanggal_akhir||''}&pelanggan_id=${args[0]?.pelanggan_id||''}&search=${encodeURIComponent(args[0]?.search||'')}`,
+    getSPKDetail: () => `${API_URL}?action=spkDetail&id=${args[0]}`,
+    generateNoSPK: () => `${API_URL}?action=generateNo`,
+    getCompanyConfig: () => `${API_URL}?action=company`,
+  };
+  if(getMap[fn]){
+    const r = await fetch(getMap[fn]());
+    return await r.json();
+  }
+  // POST actions
+  const postMap = {
+    createPelanggan: {action:"createPelanggan", nama:args[0], kontak:args[1], alamat:args[2], keterangan:args[3]},
+    updatePelanggan: {action:"updatePelanggan", id:args[0], nama:args[1], kontak:args[2], alamat:args[3], keterangan:args[4]},
+    deletePelanggan: {action:"deletePelanggan", id:args[0]},
+    createSPK: {action:"createSPK", data:args[0]},
+    updateSPK: {action:"updateSPK", spkId:args[0], data:args[1]},
+    updateStatusSPK: {action:"updateStatus", spkId:args[0], status:args[1]},
+    deleteSPK: {action:"deleteSPK", spkId:args[0]},
+  };
+  const body = postMap[fn];
+  if(!body) throw new Error("Fungsi tidak dikenal: "+fn);
+  const r = await fetch(API_URL, {method:"POST", body: JSON.stringify(body)});
+  return await r.json();
+}
